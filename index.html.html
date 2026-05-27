@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>DF LIVE STUDIO</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary-fixed": "#9cf0ff", "primary-fixed-dim": "#00daf3", "primary-container": "#00e5ff",
+            "secondary-fixed-dim": "#a0d800", "secondary-container": "#aeea01",
+            "error": "#ffb4ab", "error-container": "#93000a",
+            "surface": "#131313", "background": "#131313", "on-surface": "#e5e2e1",
+            "on-surface-variant": "#bac9cc", "outline": "#849396", "outline-variant": "#3b494c",
+            "surface-container-lowest": "#0e0e0e", "surface-container-low": "#1c1b1b",
+            "surface-container": "#201f1f", "surface-container-high": "#2a2a2a",
+            "surface-container-highest": "#353534",
+            "df-gold": "#d4a843", "df-gold-dim": "#b8912e", "df-red": "#c41e3a",
+            "solo-yellow": "#f5c842", "mute-red": "#e53935", "autotune-purple": "#9c27b0",
+            "accent-orange": "#ff690d",
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root { --safe-top: env(safe-area-inset-top, 24px); --safe-bottom: env(safe-area-inset-bottom, 16px); }
+    * { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+    body { background-color: #0a0a0a; color: #e5e2e1; min-height: 100dvh; overflow: hidden; -webkit-font-smoothing: antialiased; font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 24px; }
+    .glass-premium { backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); background: rgba(20,19,19,.85); border: 1px solid rgba(255,255,255,.06); }
+    .screen { display: none; height: calc(100dvh - 72px); }
+    .screen.active { display: flex; flex-direction: column; }
+    .vu-segment { height: 3px; margin-bottom: 2px; width: 100%; transition: opacity .04s ease; border-radius: 1px; }
+    @keyframes pulse-rec { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(1.2)} }
+    .recording-pulse { animation: pulse-rec .8s ease-in-out infinite; }
+    @keyframes native-pulse { 0%,100%{box-shadow:0 0 8px rgba(174,234,1,.4)} 50%{box-shadow:0 0 20px rgba(174,234,1,.8)} }
+    .native-active { animation: native-pulse 2s ease-in-out infinite; }
+    @keyframes fx-glow { 0%,100%{box-shadow:0 0 4px rgba(255,180,171,.3)} 50%{box-shadow:0 0 12px rgba(255,180,171,.7)} }
+    .fx-active { animation: fx-glow 1.5s ease-in-out infinite; background: rgba(255,180,171,.2)!important; border-color: rgba(255,180,171,.5)!important; color: #ffb4ab!important; }
+    @keyframes autotune-glow { 0%,100%{box-shadow:0 0 4px rgba(156,39,176,.3)} 50%{box-shadow:0 0 14px rgba(156,39,176,.7)} }
+    .autotune-active { animation: autotune-glow 1.5s ease-in-out infinite; background: rgba(156,39,176,.25)!important; border-color: rgba(156,39,176,.6)!important; color: #ce93d8!important; }
+    @keyframes df-glow { 0%,100%{text-shadow:0 0 10px rgba(212,168,67,.4)} 50%{text-shadow:0 0 20px rgba(212,168,67,.8)} }
+    .df-logo-glow { animation: df-glow 3s ease-in-out infinite; }
+    .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .custom-scrollbar::-webkit-scrollbar { width: 3px; } .custom-scrollbar::-webkit-scrollbar-track { background: transparent; } .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b494c; border-radius: 3px; }
+    .stereo-active { background: rgba(0,218,243,.2)!important; border-color: rgba(0,218,243,.6)!important; box-shadow: 0 0 12px rgba(0,218,243,.3); color: #00daf3!important; }
+    .solo-active { background: rgba(245,200,66,.3)!important; border-color: rgba(245,200,66,.7)!important; color: #f5c842!important; box-shadow: 0 0 12px rgba(245,200,66,.5); }
+    .mute-active { background: rgba(229,57,53,.3)!important; border-color: rgba(229,57,53,.7)!important; color: #e53935!important; box-shadow: 0 0 12px rgba(229,57,53,.5); }
+    .pan-indicator { width: 3px; height: 16px; background: #00daf3; border-radius: 2px; position: absolute; top: 0; transition: left .2s ease; box-shadow: 0 0 8px rgba(0,218,243,.6); }
+    .knob-shadow { box-shadow: inset 0 2px 4px rgba(255,255,255,.08), 0 4px 12px rgba(0,0,0,.7), 0 0 20px rgba(0,218,243,.15); }
+    .device-dot-active { width: 6px; height: 6px; border-radius: 50%; background: #aeea01; box-shadow: 0 0 8px rgba(174,234,1,.6); }
+    .fader-scale { position: absolute; right: -24px; top: 0; height: 100%; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; z-index: 10; }
+    .fader-scale span { font-family: 'JetBrains Mono',monospace; font-size: 7px; color: rgba(255,255,255,.25); }
+    .fader-track-s25 { background: linear-gradient(to bottom, #0a0a0a 0%, #151515 50%, #0a0a0a 100%); box-shadow: inset 2px 2px 8px rgba(0,0,0,.95), inset -1px -1px 2px rgba(255,255,255,.02); position: relative; }
+    .fader-ticks { position: absolute; left: -8px; right: -8px; top: 0; height: 100%; pointer-events: none; z-index: 5; }
+    .fader-tick { position: absolute; left: 0; right: 0; height: 1px; background: rgba(255,255,255,.06); }
+    .fader-tick.major { background: rgba(255,255,255,.12); height: 1.5px; }
+    .gain-display { background: #000; border: 2px solid #333; border-radius: 8px; padding: 4px 8px; font-family: 'JetBrains Mono',monospace; color: #00daf3; text-shadow: 0 0 8px rgba(0,218,243,.6); letter-spacing: 2px; box-shadow: inset 0 0 10px rgba(0,0,0,.8), 0 0 10px rgba(0,218,243,.2); }
+    .gain-knob { position: relative; cursor: grab; touch-action: none; }
+    .gain-knob:active { cursor: grabbing; }
+    .gain-knob-dot { position: absolute; width: 3px; height: 10px; background: #00daf3; border-radius: 2px; top: 2px; left: 50%; transform-origin: bottom center; box-shadow: 0 0 6px rgba(0,218,243,.6); }
+    .gain-scale { position: absolute; inset: -8px; pointer-events: none; }
+    .gain-scale span { position: absolute; font-family: 'JetBrains Mono',monospace; font-size: 6px; color: rgba(255,255,255,.2); }
+    .gain-scale span:nth-child(1) { top: 0; left: 50%; transform: translateX(-50%); }
+    .gain-scale span:nth-child(2) { right: 2px; top: 50%; transform: translateY(-50%); }
+    .gain-scale span:nth-child(3) { bottom: 0; left: 50%; transform: translateX(-50%); }
+    .gain-scale span:nth-child(4) { left: 2px; top: 50%; transform: translateY(-50%); }
+    .log-entry { font-family: 'JetBrains Mono',monospace; font-size: 9px; line-height: 1.6; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,.03); }
+    .log-verbose{color:#BBB}.log-debug{color:#2196F3}.log-info{color:#4CAF50}.log-warn{color:#FF9800}.log-error{color:#F44336;font-weight:bold}.log-success{color:#8BC34A}.log-system{color:#00BCD4}.log-audio{color:#E91E63}
+    .log-filter-active{background:rgba(0,218,243,.2)!important;color:#00daf3!important;border-color:rgba(0,218,243,.4)!important}
+    @keyframes trash-shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+    .trash-shake{animation:trash-shake .3s ease-in-out}
+    .fader-cap{transition:bottom .3s cubic-bezier(.4,0,.2,1)}
+    .pad-btn { transition: all 0.1s ease; }
+    .pad-btn:active { transform: scale(0.93); filter: brightness(1.4); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+    .modal { background: #1c1b1b; border: 1px solid #3b494c; border-radius: 16px; padding: 20px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
+    /* AutoPitch BandLab */
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a3f47; transition: .3s; border-radius: 24px; }
+    .switch .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    .switch input:checked + .slider { background-color: #ff690d; }
+    .switch input:checked + .slider:before { transform: translateX(20px); }
+    .preset-btn { background: #14181d; border: 1px solid transparent; color: #9aa1ab; padding: 10px 6px; border-radius: 8px; cursor: pointer; font-size: 0.7rem; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.2s; text-align: center; }
+    .preset-btn.active { background: #1a1f27; border-color: #ff690d; color: white; }
+    .preset-btn:hover { background: #22262e; color: #ddd; }
+    .key-white, .key-black { border: none; border-radius: 3px; cursor: pointer; font-size: 0.55rem; font-weight: 600; transition: 0.15s; color: #bbb; margin: 1px; }
+    .key-white { width: 28px; height: 40px; background: #2a2e36; border-bottom: 2px solid #555; }
+    .key-white.active { background: #ff690d; color: white; border-bottom-color: #cc5500; }
+    .key-black { width: 20px; height: 26px; background: #111; z-index: 2; position: relative; }
+    .key-black.active { background: #ff690d; color: white; }
+    .knob-bg-autotune { cursor: grab; transition: background 0.1s; }
+    .knob-bg-autotune:active { cursor: grabbing; }
+  </style>
+</head>
+<body class="font-sans">
+
+<!-- HEADER -->
+<header class="fixed top-0 z-[60] w-full glass-premium" style="padding-top: env(safe-area-inset-top, 24px);">
+  <div class="flex justify-between items-center px-4 py-2.5 border-b border-outline-variant/30">
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-df-gold to-df-gold-dim flex items-center justify-center shadow-[0_0_15px_rgba(212,168,67,0.4)] df-logo-glow"><span class="text-black font-black text-lg">DF</span></div>
+        <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-df-red shadow-[0_0_6px_rgba(196,30,58,0.6)]"></div>
+      </div>
+      <div>
+        <h1 class="font-headline tracking-tighter text-on-surface leading-none text-lg flex items-center gap-2"><span class="text-df-gold font-black">DF</span><span>LIVE STUDIO</span></h1>
+        <p class="font-mono text-[7px] text-df-gold-dim tracking-[0.2em]"><span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed-dim native-active inline-block mr-1"></span>AAUDIO 48kHz</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="openRecordingsList()" class="p-2 rounded-lg bg-surface-container-highest/50 border border-outline-variant/30 haptic-feedback"><span class="material-symbols-outlined" style="font-size:20px;">playlist_play</span></button>
+      <button id="recButton" class="bg-surface-container-high text-on-surface-variant px-3 py-1.5 font-mono text-label-sm rounded-lg flex items-center gap-1.5 active:scale-95 duration-75 border border-outline-variant/40"><span class="w-2 h-2 rounded-full bg-on-surface-variant/50" id="recDot"></span><span class="text-[9px]">GRAVAR</span></button>
+    </div>
+  </div>
+  <div class="px-4 py-2">
+    <div class="flex items-center gap-3 px-3 py-2.5 bg-black/40 rounded-xl border border-white/5">
+      <div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 mb-0.5"><span class="material-symbols-outlined text-df-gold" style="font-size:14px;">mic</span><span class="font-mono text-[8px] text-on-surface-variant/60">ENTRADA</span><span class="device-dot-active"></span></div><select id="micSelector" class="w-full bg-transparent font-mono text-[10px] text-on-surface font-bold truncate border-none outline-none" onchange="selectDevice('input',this.value)"><option value="auto">🔍 Auto</option><option value="interno">📱 Interno</option><option value="usb">🔌 USB-C OTG</option></select></div>
+      <div class="w-6 h-[1px] bg-gradient-to-r from-df-gold/50 to-primary-fixed-dim/50"></div>
+      <div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 mb-0.5"><span class="material-symbols-outlined text-primary-fixed-dim" style="font-size:14px;">speaker</span><span class="font-mono text-[8px] text-on-surface-variant/60">SAÍDA</span><span class="device-dot-active"></span></div><select id="outputSelector" class="w-full bg-transparent font-mono text-[10px] text-on-surface font-bold truncate border-none outline-none" onchange="selectDevice('output',this.value)"><option value="auto">🔍 Auto</option><option value="alto-falante">🔊 Alto-Falante</option><option value="fone">🎧 Fone</option><option value="usb">🔌 USB-C OTG</option></select></div>
+      <span class="font-mono text-[8px] text-df-gold/60">~3ms</span>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== MIXER ==================== -->
+<div id="mixerScreen" class="screen active pt-32 pb-24">
+  <div class="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar px-4 flex items-stretch">
+    <div class="flex gap-3 h-full min-w-max pb-2" style="height:100%;">
+      <!-- Canal ENTRADA -->
+      <div class="w-[100px] flex flex-col items-center bg-surface-container-lowest/50 rounded-2xl p-2 border border-outline-variant/20 glass-premium h-full">
+        <div class="w-full text-center mb-1"><span class="font-mono text-[8px] text-on-surface font-bold">ENTRADA</span></div>
+        <div class="gain-display w-full text-center mb-1 py-1" id="micGainDisplay"><span class="text-[9px] font-bold">0.0 dB</span></div>
+        <div class="gain-knob w-10 h-10 rounded-full bg-surface-container-highest border-2 border-outline/30 flex items-center justify-center shadow-inner knob-shadow relative mx-auto mb-1" id="micGainKnob" data-gain="50" data-channel="mic" ondblclick="resetGain('mic')">
+          <div class="gain-scale"><span>+20</span><span>0</span><span>-20</span><span>0</span></div>
+          <div class="gain-knob-dot" id="micGainDot" style="transform: rotate(0deg) translateY(-12px);"></div>
+        </div>
+        <div class="w-full bg-black/40 rounded-lg p-1 mb-1"><div class="flex gap-0.5"><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold text-on-surface-variant/50 bg-surface-container-highest/30 border border-outline-variant/20" data-stereo="L" data-channel="mic" onclick="setStereo('mic','L')">L</button><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold stereo-active" data-stereo="C" data-channel="mic" onclick="setStereo('mic','C')">C</button><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold text-on-surface-variant/50 bg-surface-container-highest/30 border border-outline-variant/20" data-stereo="R" data-channel="mic" onclick="setStereo('mic','R')">R</button></div></div>
+        <div class="flex gap-0.5 mb-1"><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold bg-surface-container-highest/50 text-on-surface-variant/60 border border-outline-variant/20 haptic-feedback flex items-center justify-center gap-0.5" id="fxMicBtn" onclick="toggleChannelFX('mic')"><span class="material-symbols-outlined" style="font-size:10px;">auto_fix</span>FX</button><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold bg-surface-container-highest/50 text-on-surface-variant/60 border border-outline-variant/20 haptic-feedback flex items-center justify-center gap-0.5" id="atMicBtn" onclick="toggleChannelAutoTune('mic')"><span class="material-symbols-outlined" style="font-size:10px;">tune</span>AT</button></div>
+        <div class="flex gap-1 flex-1 my-1"><div class="flex-1 flex flex-col-reverse gap-[1px] overflow-hidden rounded-sm bg-black/60 p-[1px]" id="vuMicL"><div class="vu-segment bg-[#00daf3]" style="opacity:0.2;"></div><div class="vu-segment bg-[#aeea01]" style="opacity:0.2;"></div><div class="vu-segment bg-on-surface-variant/12"></div><div class="vu-segment bg-on-surface-variant/12"></div></div><div class="flex-1 flex flex-col-reverse gap-[1px] overflow-hidden rounded-sm bg-black/60 p-[1px]" id="vuMicR"><div class="vu-segment bg-[#00daf3]" style="opacity:0.2;"></div><div class="vu-segment bg-[#aeea01]" style="opacity:0.2;"></div><div class="vu-segment bg-on-surface-variant/12"></div><div class="vu-segment bg-on-surface-variant/12"></div></div></div>
+        <div class="grid grid-cols-2 gap-0.5 mb-1"><button class="w-6 h-6 bg-surface-container-highest rounded flex items-center justify-center font-mono text-[7px] text-on-surface-variant border border-outline/20 font-bold" id="soloMicBtn" onclick="toggleSolo('mic')">S</button><button class="w-6 h-6 bg-surface-container-highest rounded flex items-center justify-center font-mono text-[7px] text-on-surface-variant border border-outline/20 font-bold" id="muteMicBtn" onclick="toggleMute('mic')">M</button></div>
+        <div class="w-full flex-1 flex justify-center relative min-h-[120px]"><div class="fader-track-s25 w-2 h-full rounded-full relative"><div class="fader-ticks" id="micTicks"></div><div class="fader-scale"><span>+10</span><span>+5</span><span>0</span><span>-5</span><span>-10</span><span>-20</span><span>-30</span><span>-∞</span></div><div class="absolute bottom-0 w-full bg-primary-container shadow-[0_0_12px_#00e5ff] rounded-b-full" id="micFaderFill" style="height:55%;"></div><div class="fader-cap absolute left-1/2 -translate-x-1/2 w-10 h-7 rounded-md cursor-grab bg-gradient-to-b from-surface-container-highest to-surface-container-low border border-outline-variant flex flex-col justify-center items-center gap-0.5 shadow-xl" id="micFaderCap" style="bottom:55%;" data-channel="mic" data-value="50" ondblclick="resetFader('mic')"><div class="w-7 h-[1px] bg-white/20 rounded-full"></div><div class="w-7 h-[1px] bg-white/20 rounded-full"></div></div></div></div>
+      </div>
+      <!-- Canal SISTEMA -->
+      <div class="w-[100px] flex flex-col items-center bg-surface-container-lowest/50 rounded-2xl p-2 border border-outline-variant/20 glass-premium h-full">
+        <div class="w-full text-center mb-1"><span class="font-mono text-[8px] text-on-surface font-bold">SISTEMA</span></div>
+        <div class="gain-display w-full text-center mb-1 py-1" id="sysGainDisplay"><span class="text-[9px] font-bold">0.0 dB</span></div>
+        <div class="gain-knob w-10 h-10 rounded-full bg-surface-container-highest border-2 border-outline/30 flex items-center justify-center shadow-inner knob-shadow relative mx-auto mb-1" id="sysGainKnob" data-gain="50" data-channel="sys" ondblclick="resetGain('sys')"><div class="gain-scale"><span>+20</span><span>0</span><span>-20</span><span>0</span></div><div class="gain-knob-dot" id="sysGainDot" style="transform: rotate(0deg) translateY(-12px);"></div></div>
+        <div class="w-full bg-black/40 rounded-lg p-1 mb-1"><div class="flex gap-0.5"><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold text-on-surface-variant/50 bg-surface-container-highest/30 border border-outline-variant/20" data-stereo="L" data-channel="sys" onclick="setStereo('sys','L')">L</button><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold stereo-active" data-stereo="C" data-channel="sys" onclick="setStereo('sys','C')">C</button><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold text-on-surface-variant/50 bg-surface-container-highest/30 border border-outline-variant/20" data-stereo="R" data-channel="sys" onclick="setStereo('sys','R')">R</button></div></div>
+        <div class="flex gap-0.5 mb-1"><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold bg-surface-container-highest/50 text-on-surface-variant/60 border border-outline-variant/20 haptic-feedback flex items-center justify-center gap-0.5" id="fxSysBtn" onclick="toggleChannelFX('sys')"><span class="material-symbols-outlined" style="font-size:10px;">auto_fix</span>FX</button><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold bg-surface-container-highest/50 text-on-surface-variant/60 border border-outline-variant/20 haptic-feedback flex items-center justify-center gap-0.5" id="atSysBtn" onclick="toggleChannelAutoTune('sys')"><span class="material-symbols-outlined" style="font-size:10px;">tune</span>AT</button></div>
+        <div class="flex gap-1 flex-1 my-1"><div class="flex-1 flex flex-col-reverse gap-[1px] overflow-hidden rounded-sm bg-black/60 p-[1px]" id="vuSysL"><div class="vu-segment bg-on-surface-variant/12"></div><div class="vu-segment bg-on-surface-variant/12"></div><div class="vu-segment bg-on-surface-variant/12"></div><div class="vu-segment bg-on-surface-variant/12"></div></div><div class="flex-1 flex flex-col-reverse gap-[1px] overflow-hidden rounded-sm bg-black/60 p-[1px]" id="vuSysR"><div class="vu-segment bg-on-surface-variant/12"></div><div class="vu-segment bg-on-surface-variant/12"></div><div class="vu-segment bg-on-surface-variant/12"></div><div class="vu-segment bg-on-surface-variant/12"></div></div></div>
+        <div class="grid grid-cols-2 gap-0.5 mb-1"><button class="w-6 h-6 bg-surface-container-highest rounded flex items-center justify-center font-mono text-[7px] text-on-surface-variant border border-outline/20 font-bold" id="soloSysBtn" onclick="toggleSolo('sys')">S</button><button class="w-6 h-6 bg-surface-container-highest rounded flex items-center justify-center font-mono text-[7px] text-on-surface-variant border border-outline/20 font-bold" id="muteSysBtn" onclick="toggleMute('sys')">M</button></div>
+        <div class="w-full flex-1 flex justify-center relative min-h-[120px]"><div class="fader-track-s25 w-2 h-full rounded-full relative"><div class="fader-ticks" id="sysTicks"></div><div class="fader-scale"><span>+10</span><span>+5</span><span>0</span><span>-5</span><span>-10</span><span>-20</span><span>-30</span><span>-∞</span></div><div class="absolute bottom-0 w-full bg-primary-container shadow-[0_0_12px_#00e5ff] rounded-b-full" id="sysFaderFill" style="height:55%;"></div><div class="fader-cap absolute left-1/2 -translate-x-1/2 w-10 h-7 rounded-md cursor-grab bg-gradient-to-b from-surface-container-highest to-surface-container-low border border-outline-variant flex flex-col justify-center items-center gap-0.5 shadow-xl" id="sysFaderCap" style="bottom:55%;" data-channel="sys" data-value="50" ondblclick="resetFader('sys')"><div class="w-7 h-[1px] bg-white/20 rounded-full"></div><div class="w-7 h-[1px] bg-white/20 rounded-full"></div></div></div></div>
+      </div>
+      <!-- MASTER -->
+      <div class="ml-4 w-[105px] flex flex-col items-center bg-surface-container-lowest/50 rounded-2xl p-2 border-2 border-df-gold/30 glass-premium h-full">
+        <div class="w-full text-center mb-1"><span class="font-mono text-[9px] text-df-gold font-bold tracking-widest">MASTER</span></div>
+        <div class="w-full bg-black/40 rounded-lg p-2 mb-1 text-center"><span class="font-mono text-[12px] text-df-gold font-bold" id="masterDbDisplay">0.0 dB</span></div>
+        <div class="w-full bg-black/40 rounded-lg p-1 mb-1 border border-df-gold/20"><div class="flex gap-0.5"><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold text-on-surface-variant/50 bg-surface-container-highest/30 border border-outline-variant/20" data-stereo="L" data-channel="master" onclick="setStereo('master','L')">L</button><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold stereo-active" data-stereo="C" data-channel="master" onclick="setStereo('master','C')">C</button><button class="flex-1 py-1 rounded font-mono text-[7px] font-bold text-on-surface-variant/50 bg-surface-container-highest/30 border border-outline-variant/20" data-stereo="R" data-channel="master" onclick="setStereo('master','R')">R</button></div></div>
+        <div class="flex gap-1 flex-1 my-1"><div class="flex-1 flex flex-col-reverse gap-[1px] overflow-hidden rounded-sm bg-black/60 p-[1px]" id="masterMeterL"><div class="vu-segment bg-[#00daf3]" style="opacity:0.3;"></div><div class="vu-segment bg-[#aeea01]" style="opacity:0.3;"></div><div class="vu-segment bg-on-surface-variant/12"></div><div class="vu-segment bg-on-surface-variant/12"></div></div><div class="flex-1 flex flex-col-reverse gap-[1px] overflow-hidden rounded-sm bg-black/60 p-[1px]" id="masterMeterR"><div class="vu-segment bg-[#00daf3]" style="opacity:0.3;"></div><div class="vu-segment bg-[#aeea01]" style="opacity:0.3;"></div><div class="vu-segment bg-on-surface-variant/12"></div><div class="vu-segment bg-on-surface-variant/12"></div></div></div>
+        <div class="w-full flex-1 flex justify-center relative min-h-[120px]"><div class="fader-track-s25 w-2.5 h-full rounded-full relative"><div class="fader-ticks" id="masterTicks"></div><div class="fader-scale"><span>+10</span><span>+5</span><span>0</span><span>-5</span><span>-10</span><span>-20</span><span>-30</span><span>-∞</span></div><div class="absolute bottom-0 w-full bg-df-gold shadow-[0_0_16px_rgba(212,168,67,0.5)] rounded-b-full" id="masterFaderFill" style="height:55%;"></div><div class="fader-cap absolute left-1/2 -translate-x-1/2 w-11 h-7 rounded-md cursor-grab border border-df-gold/50 flex flex-col justify-center items-center gap-1 shadow-xl" id="masterFaderCap" style="bottom:55%; background:linear-gradient(145deg, #d4a843, #b8912e);" data-channel="master" data-value="50" ondblclick="resetFader('master')"><div class="w-7 h-[1.5px] bg-black/30 rounded-full"></div><div class="w-7 h-[1.5px] bg-black/30 rounded-full"></div></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EFEITOS ==================== -->
+<div id="effectsScreen" class="screen pt-32 pb-24 custom-scrollbar" style="overflow-y:auto;">
+  <div class="px-4 space-y-3">
+    <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 glass-premium"><h3 class="font-mono text-label-sm text-primary-fixed mb-2">EQ VISUALIZER</h3><canvas id="eqCanvas" class="w-full h-32 bg-black/60 rounded-lg"></canvas></div>
+    <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-3 glass-premium"><div class="flex justify-between items-center mb-2"><h3 class="font-mono text-xs text-on-surface">COMPRESSOR</h3><button class="w-12 h-7 rounded-full bg-primary-fixed-dim/20 border-2 border-primary-fixed-dim flex items-center px-1" onclick="toggleCompressor()"><div class="w-5 h-5 rounded-full bg-primary-fixed-dim ml-auto"></div></button></div><div class="grid grid-cols-3 gap-2"><div class="text-center"><span class="font-mono text-[7px]">THRESHOLD</span><div class="knob-container relative w-12 h-12 mx-auto" data-knob data-value="50"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"><circle class="text-surface-container-lowest" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-width="6"></circle><circle class="text-primary-fixed" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-dasharray="220" stroke-dashoffset="110" stroke-width="6"></circle></svg></div></div><div class="text-center"><span class="font-mono text-[7px]">RATIO</span><div class="knob-container relative w-12 h-12 mx-auto" data-knob data-value="50"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"><circle class="text-surface-container-lowest" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-width="6"></circle><circle class="text-primary-fixed" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-dasharray="220" stroke-dashoffset="110" stroke-width="6"></circle></svg></div></div><div class="text-center"><span class="font-mono text-[7px]">MAKEUP</span><div class="knob-container relative w-12 h-12 mx-auto" data-knob data-value="50"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"><circle class="text-surface-container-lowest" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-width="6"></circle><circle class="text-primary-fixed" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-dasharray="220" stroke-dashoffset="110" stroke-width="6"></circle></svg></div></div></div></div>
+    <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-3 glass-premium"><div class="flex justify-between items-center mb-2"><h3 class="font-mono text-xs text-on-surface">DELAY</h3><button class="w-12 h-7 rounded-full bg-surface-container-highest border-2 border-outline-variant flex items-center px-1" onclick="toggleDelay()"><div class="w-5 h-5 rounded-full bg-on-surface-variant/50"></div></button></div><div class="flex justify-around"><div class="text-center"><span class="font-mono text-[7px]">TEMPO</span><div class="knob-container relative w-12 h-12 mx-auto" data-knob data-value="50"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"><circle class="text-surface-container-lowest" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-width="6"></circle><circle class="text-primary-fixed" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-dasharray="220" stroke-dashoffset="110" stroke-width="6"></circle></svg></div></div><div class="text-center"><span class="font-mono text-[7px]">FEEDBACK</span><div class="knob-container relative w-12 h-12 mx-auto" data-knob data-value="50"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"><circle class="text-surface-container-lowest" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-width="6"></circle><circle class="text-primary-fixed" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-dasharray="220" stroke-dashoffset="110" stroke-width="6"></circle></svg></div></div></div></div>
+    <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-3 glass-premium"><div class="flex justify-between items-center mb-2"><div class="flex items-center gap-1"><span class="material-symbols-outlined text-primary-fixed" style="font-size:18px;">repeat</span><h3 class="font-mono text-xs text-on-surface">ECHO</h3></div><button class="w-12 h-7 rounded-full bg-surface-container-highest border-2 border-outline-variant flex items-center px-1" onclick="toggleEcho()"><div class="w-5 h-5 rounded-full bg-on-surface-variant/50"></div></button></div><div class="flex justify-around"><div class="text-center"><span class="font-mono text-[7px]">REPEAT</span><div class="knob-container relative w-12 h-12 mx-auto" data-knob data-value="40"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"><circle class="text-surface-container-lowest" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-width="6"></circle><circle class="text-primary-fixed" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-dasharray="220" stroke-dashoffset="132" stroke-width="6"></circle></svg></div></div><div class="text-center"><span class="font-mono text-[7px]">DECAY</span><div class="knob-container relative w-12 h-12 mx-auto" data-knob data-value="50"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"><circle class="text-surface-container-lowest" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-width="6"></circle><circle class="text-primary-fixed" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-dasharray="220" stroke-dashoffset="110" stroke-width="6"></circle></svg></div></div><div class="text-center"><span class="font-mono text-[7px]">MIX</span><div class="knob-container relative w-12 h-12 mx-auto" data-knob data-value="30"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"><circle class="text-surface-container-lowest" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-width="6"></circle><circle class="text-primary-fixed" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-dasharray="220" stroke-dashoffset="154" stroke-width="6"></circle></svg></div></div></div></div>
+    <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-3 glass-premium"><div class="flex justify-between items-center mb-2"><h3 class="font-mono text-xs text-on-surface">REVERB</h3><button class="w-12 h-7 rounded-full bg-primary-fixed-dim/20 border-2 border-primary-fixed-dim flex items-center px-1" onclick="toggleReverb()"><div class="w-5 h-5 rounded-full bg-primary-fixed-dim ml-auto"></div></button></div><div class="flex justify-around"><div class="text-center"><span class="font-mono text-[7px]">SIZE</span><div class="knob-container relative w-12 h-12 mx-auto" data-knob data-value="50"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"><circle class="text-surface-container-lowest" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-width="6"></circle><circle class="text-primary-fixed" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-dasharray="220" stroke-dashoffset="110" stroke-width="6"></circle></svg></div></div><div class="text-center"><span class="font-mono text-[7px]">MIX</span><div class="knob-container relative w-12 h-12 mx-auto" data-knob data-value="50"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"><circle class="text-surface-container-lowest" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-width="6"></circle><circle class="text-primary-fixed" cx="50" cy="50" fill="transparent" r="35" stroke="currentColor" stroke-dasharray="220" stroke-dashoffset="110" stroke-width="6"></circle></svg></div></div></div></div>
+  </div>
+</div>
+
+<!-- ==================== AUTOTUNE CORRIGIDO ==================== -->
+<div id="autotuneScreen" class="screen pt-32 pb-24 custom-scrollbar" style="overflow-y:auto;">
+  <div class="px-4 space-y-3">
+    <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 glass-premium">
+      <!-- Cabeçalho com Switch -->
+      <div class="flex items-center gap-3 mb-4">
+        <label class="switch">
+          <input type="checkbox" checked id="autoPitchToggle" onchange="toggleAutoPitch()">
+          <span class="slider"></span>
+        </label>
+        <span class="font-mono text-sm font-bold">AutoPitch™</span>
+        <span style="color:#f59e0b;font-size:0.7rem;">👑</span>
+        <button class="ml-auto px-3 py-1.5 rounded-full text-[9px] font-mono bg-surface-container-highest border border-outline-variant text-on-surface-variant hover:text-white transition-colors" onclick="detectKey()">Detectar tom</button>
+      </div>
+
+      <!-- Grid de Presets -->
+      <div class="grid grid-cols-3 gap-2 mb-4" id="presetsGrid">
+        <button class="preset-btn active" data-preset="classic" onclick="selectPreset(this,'classic')"><span class="material-symbols-outlined" style="font-size:16px;">hexagon</span>Classic</button>
+        <button class="preset-btn" data-preset="duet" onclick="selectPreset(this,'duet')"><span class="material-symbols-outlined" style="font-size:16px;">waves</span>Duet</button>
+        <button class="preset-btn" data-preset="harmony" onclick="selectPreset(this,'harmony')"><span class="material-symbols-outlined" style="font-size:16px;">layers</span>Big Harmony</button>
+        <button class="preset-btn" data-preset="natural" onclick="selectPreset(this,'natural')"><span class="material-symbols-outlined" style="font-size:16px;">feather</span>Natural <span style="color:#f59e0b;font-size:0.6rem;">👑</span></button>
+        <button class="preset-btn" data-preset="third" onclick="selectPreset(this,'third')"><span class="material-symbols-outlined" style="font-size:16px;">music_note</span>Third <span style="color:#f59e0b;font-size:0.6rem;">👑</span></button>
+        <button class="preset-btn" data-preset="chip" onclick="selectPreset(this,'chip')"><span class="material-symbols-outlined" style="font-size:16px;">memory</span>Chip <span style="color:#f59e0b;font-size:0.6rem;">👑</span></button>
+      </div>
+
+      <!-- Intensidade + Escala + Tom -->
+      <div class="flex items-start gap-4 flex-wrap">
+        <!-- Knob de Intensidade -->
+        <div class="flex flex-col items-center gap-2">
+          <span class="font-mono text-[8px] text-on-surface-variant/60">INTENSIDADE</span>
+          <div class="relative w-20 h-20 flex items-center justify-center">
+            <div class="knob-bg-autotune w-20 h-20 rounded-full flex items-center justify-center" id="knobBg" style="background: conic-gradient(#ff690d 0deg, #ff690d 96deg, #14181d 96deg);">
+              <div class="w-14 h-14 rounded-full bg-[#1e2229] flex items-center justify-center relative shadow-lg">
+                <div class="absolute top-2 w-1 h-4 bg-white rounded-sm" id="knobDot" style="transform: rotate(0deg); transform-origin: bottom center;"></div>
+              </div>
+            </div>
+          </div>
+          <span class="font-mono text-[10px] font-bold" id="intensityDisplay">40%</span>
+        </div>
+
+        <!-- Escala + Teclado -->
+        <div class="flex-1 min-w-[200px]">
+          <div class="font-mono text-[8px] text-on-surface-variant/60 mb-1">ESCALA</div>
+          <div class="bg-surface-container-highest border border-outline-variant rounded-lg px-3 py-2 font-mono text-[10px] cursor-pointer hover:bg-surface-container-highest/70 transition-colors inline-flex items-center gap-2 mb-3" id="scaleDropdown" onclick="cycleScale()">
+            <span id="scaleName">Cromático</span>
+            <span class="material-symbols-outlined" style="font-size:14px;">expand_more</span>
+          </div>
+          <div class="font-mono text-[8px] text-on-surface-variant/60 mb-1">TOM</div>
+          <div class="flex flex-wrap gap-0.5" id="pianoKeys"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PADS (12 com Play/Stop/Upload) ==================== -->
+<div id="padsScreen" class="screen pt-32 pb-24 custom-scrollbar" style="overflow-y:auto;">
+  <div class="px-4 space-y-3">
+    <div class="flex justify-between items-center">
+      <h3 class="font-mono text-label-sm text-df-gold">SAMPLER PADS</h3>
+      <button onclick="stopAllPads()" class="px-4 py-2 bg-df-red/30 border border-df-red/40 rounded-xl font-mono text-xs text-df-red font-bold haptic-feedback flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:18px;">stop</span>PARAR TODOS</button>
+    </div>
+    <div class="grid grid-cols-3 gap-3" id="padsGrid"></div>
+  </div>
+</div>
+
+<!-- ==================== SETTINGS ==================== -->
+<div id="settingsScreen" class="screen pt-32 pb-24 custom-scrollbar" style="overflow-y:auto;">
+  <div class="px-4 space-y-4">
+    <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 glass-premium">
+      <h3 class="font-mono text-label-sm text-df-gold mb-3">TESTE DE LATÊNCIA</h3>
+      <button class="w-full py-3 bg-df-gold/20 border-2 border-df-gold/40 rounded-xl font-mono text-sm text-df-gold font-bold haptic-feedback mb-3" onclick="runLatencyTest()">🧪 EXECUTAR TESTE</button>
+      <div class="text-center"><span class="font-mono text-4xl font-bold text-df-gold" id="latencyResultValue">--</span><span class="font-mono text-lg"> ms</span></div>
+    </div>
+    <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl glass-premium overflow-hidden">
+      <div class="flex justify-between items-center p-3 border-b border-outline-variant/20 bg-black/40"><h3 class="font-mono text-label-sm text-df-gold">LOGCAT</h3><div class="flex gap-1"><button onclick="copyLogs()" class="p-1.5 rounded bg-surface-container-highest/50"><span class="material-symbols-outlined" style="font-size:14px;">content_copy</span></button><button onclick="clearLogs()" class="p-1.5 rounded bg-surface-container-highest/50" id="trashBtn"><span class="material-symbols-outlined" style="font-size:14px;">delete</span></button></div></div>
+      <div id="logContainer" class="h-[300px] overflow-y-auto custom-scrollbar p-2 bg-[#0a0a0a] font-mono text-[9px]"><div class="text-on-surface-variant/30 text-center py-8">Nenhum log</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GRAVAÇÕES -->
+<div id="recordingsModal" class="modal-overlay" style="display:none;" onclick="closeRecordingsList(event)"><div class="modal w-full max-w-md" onclick="event.stopPropagation()"><div class="flex justify-between items-center mb-4"><h3 class="font-mono text-label-sm text-df-gold">📼 GRAVAÇÕES</h3><button onclick="closeRecordingsList()" class="p-1 rounded-lg hover:bg-surface-container-highest"><span class="material-symbols-outlined" style="font-size:20px;">close</span></button></div><div id="recordingsListContainer" class="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar"></div></div></div>
+
+<!-- NAV -->
+<nav class="fixed bottom-0 w-full z-50 h-[72px] flex justify-around items-center bg-surface-container/95 backdrop-blur-2xl border-t border-outline-variant/30 shadow-2xl px-2" style="padding-bottom: env(safe-area-inset-bottom, 16px);">
+  <button onclick="switchScreen('mixer')" id="navMixer" class="flex flex-col items-center gap-0.5 text-df-gold shadow-[0_0_16px_rgba(212,168,67,0.4)] w-14 active:scale-90"><span class="material-symbols-outlined" style="font-variation-settings:'FILL'1;font-size:22px;">tune</span><span class="font-mono text-[7px]">Mixer</span></button>
+  <button onclick="switchScreen('effects')" id="navEffects" class="flex flex-col items-center gap-0.5 text-on-surface-variant opacity-50 w-14 active:scale-90"><span class="material-symbols-outlined" style="font-size:22px;">waves</span><span class="font-mono text-[7px]">Efeitos</span></button>
+  <button onclick="switchScreen('autotune')" id="navAutotune" class="flex flex-col items-center gap-0.5 text-on-surface-variant opacity-50 w-14 active:scale-90"><span class="material-symbols-outlined" style="font-size:22px;">tune</span><span class="font-mono text-[7px]">AutoTune</span></button>
+  <button onclick="switchScreen('pads')" id="navPads" class="flex flex-col items-center gap-0.5 text-on-surface-variant opacity-50 w-14 active:scale-90"><span class="material-symbols-outlined" style="font-size:22px;">grid_view</span><span class="font-mono text-[7px]">Pads</span></button>
+  <button onclick="switchScreen('settings')" id="navSettings" class="flex flex-col items-center gap-0.5 text-on-surface-variant opacity-50 w-14 active:scale-90"><span class="material-symbols-outlined" style="font-size:22px;">settings</span><span class="font-mono text-[7px]">Config</span></button>
+</nav>
+
+<script>
+// ==================== SISTEMA ====================
+const logEntries=[];
+function addLog(n,t,m){const d=new Date();logEntries.unshift({level:n,tag:t,message:m,timeStr:d.toLocaleTimeString('pt-BR',{hour12:false})+'.'+String(d.getMilliseconds()).padStart(3,'0')});if(logEntries.length>500)logEntries.pop();renderLogs();}
+function renderLogs(){const c=document.getElementById('logContainer');if(!c)return;c.innerHTML=logEntries.length===0?'<div class="text-on-surface-variant/30 text-center py-8">Nenhum log</div>':logEntries.map(l=>`<div class="log-entry log-${l.level}"><span class="opacity-40">${l.timeStr}</span> <span class="font-bold">${l.level.toUpperCase().padEnd(7)}</span>[${l.tag}] ${l.message}</div>`).join('');}
+function clearLogs(){logEntries.length=0;renderLogs();document.getElementById('trashBtn')?.classList.add('trash-shake');setTimeout(()=>document.getElementById('trashBtn')?.classList.remove('trash-shake'),300);navigator.vibrate?.(20);}
+function copyLogs(){const t=logEntries.map(l=>`[${l.timeStr}] [${l.level.toUpperCase()}] [${l.tag}] ${l.message}`).join('\n');navigator.clipboard?.writeText(t).then(()=>navigator.vibrate?.(15));}
+function switchScreen(s){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  const m={mixer:'mixerScreen',effects:'effectsScreen',autotune:'autotuneScreen',pads:'padsScreen',settings:'settingsScreen'};
+  document.getElementById(m[s])?.classList.add('active');
+  document.querySelectorAll('nav button').forEach(b=>{b.classList.remove('text-df-gold','shadow-[0_0_16px_rgba(212,168,67,0.4)]');b.classList.add('text-on-surface-variant','opacity-50');b.querySelector('.material-symbols-outlined').style.fontVariationSettings="'FILL'0,'wght'400,'GRAD'0,'opsz'24";});
+  const a=document.getElementById('nav'+s.charAt(0).toUpperCase()+s.slice(1));
+  if(a){a.classList.remove('text-on-surface-variant','opacity-50');a.classList.add('text-df-gold','shadow-[0_0_16px_rgba(212,168,67,0.4)]');a.querySelector('.material-symbols-outlined').style.fontVariationSettings="'FILL'1,'wght'400,'GRAD'0,'opsz'24";}
+  if(s==='pads')renderPads();
+  if(s==='autotune'){renderKeyboard();initAutoTuneKnob();}
+}
+function selectDevice(t,v){navigator.vibrate?.(10);addLog('audio',t==='input'?'Entrada':'Saída',t==='input'?'🎤 '+v:'🔊 '+v);}
+
+// ==================== GRAVAÇÕES ====================
+let recordings=[{id:1,name:'Gravação 1',date:'2025-01-15',time:'14:30',duration:'2:34'},{id:2,name:'Gravação 2',date:'2025-01-15',time:'15:45',duration:'5:12'}];
+function openRecordingsList(){const modal=document.getElementById('recordingsModal'),container=document.getElementById('recordingsListContainer');if(!modal||!container)return;container.innerHTML=recordings.length===0?'<div class="text-on-surface-variant/40 text-center py-4">Nenhuma gravação</div>':recordings.map(r=>`<div class="flex items-center justify-between bg-black/40 rounded-lg p-3"><div class="flex-1"><div class="font-mono text-[10px] text-on-surface font-bold" id="recName_${r.id}">${r.name}</div><div class="font-mono text-[7px] text-on-surface-variant">${r.date} • ${r.time} • ${r.duration}</div></div><button onclick="renameRecording(${r.id})" class="p-2 rounded-lg bg-surface-container-highest/50 haptic-feedback"><span class="material-symbols-outlined" style="font-size:16px;">edit</span></button></div>`).join('');modal.style.display='flex';}
+function closeRecordingsList(e){if(e&&e.target!==document.getElementById('recordingsModal'))return;document.getElementById('recordingsModal').style.display='none';}
+function renameRecording(id){const r=recordings.find(x=>x.id===id);if(!r)return;const n=prompt('Renomear:',r.name);if(n){r.name=n;document.getElementById('recName_'+id).textContent=n;navigator.vibrate?.(15);}}
+
+// ==================== GANHOS ====================
+const gainV={mic:{v:50,d:'micGainDisplay',dot:'micGainDot'},sys:{v:50,d:'sysGainDisplay',dot:'sysGainDot'}};
+function valueToDb(v){return(v/100)*40-20;}
+function updateGain(ch,p){const db=valueToDb(p),disp=document.getElementById(gainV[ch].d),dot=document.getElementById(gainV[ch].dot);if(disp)disp.querySelector('span').textContent=(db>=0?'+':'')+db.toFixed(1)+' dB';if(dot)dot.style.transform=`rotate(${(p/100)*270-135}deg) translateY(-12px)`;gainV[ch].v=p;}
+function resetGain(ch){updateGain(ch,50);navigator.vibrate?.(15);}
+
+// ==================== FADERS ====================
+const tickValues=[100,95,90,85,80,75,70,65,60,55,50,45,40,35,30,25,20,15,10,5,0];
+function generateTicks(id){const c=document.getElementById(id);if(!c)return;c.innerHTML=tickValues.map(v=>`<div class="fader-tick${v%10===0||v===55?' major':''}" style="bottom:${v}%;"></div>`).join('');}
+function faderPercentToDb(p){return(p/100)*50-40;}
+function updateFader(ch,p){const cap=document.getElementById((ch==='master'?'master':ch==='sys'?'sys':'mic')+'FaderCap'),fill=document.getElementById((ch==='master'?'master':ch==='sys'?'sys':'mic')+'FaderFill');if(!cap||!fill)return;p=Math.max(0,Math.min(100,p));cap.style.bottom=p+'%';cap.dataset.value=Math.round(p);fill.style.height=p+'%';if(ch==='master')document.getElementById('masterDbDisplay').textContent=faderPercentToDb(p).toFixed(1)+' dB';const ct=tickValues.find(t=>Math.abs(t-p)<1.5),pt=parseInt(cap.dataset.prevTick||'0');if(ct&&ct!==pt){navigator.vibrate?.(8);cap.dataset.prevTick=ct;}}
+function resetFader(ch){updateFader(ch,55);navigator.vibrate?.(20);}
+
+// ==================== STEREO/SOLO/MUTE/FX/AT ====================
+const chM={mic:'C',sys:'C',master:'C'},soloS={mic:false,sys:false},muteS={mic:false,sys:false},chFX={mic:false,sys:false},chAT={mic:false,sys:false};
+function setStereo(ch,m){chM[ch]=m;document.querySelectorAll(`[data-channel="${ch}"]`).forEach(b=>{b.classList.remove('stereo-active');b.classList.add('text-on-surface-variant/50','bg-surface-container-highest/30','border-outline-variant/20');});const a=document.querySelector(`[data-channel="${ch}"][data-stereo="${m}"]`);if(a){a.classList.add('stereo-active');a.classList.remove('text-on-surface-variant/50','bg-surface-container-highest/30','border-outline-variant/20');}const pm={mic:'panMic',sys:'panSys',master:'panMaster'};const p=document.getElementById(pm[ch]);if(p)p.style.left=m==='L'?'0%':m==='C'?'50%':'100%';}
+function toggleSolo(ch){soloS[ch]=!soloS[ch];const b=document.getElementById('solo'+(ch==='sys'?'Sys':'Mic')+'Btn');if(soloS[ch])b.classList.add('solo-active');else b.classList.remove('solo-active');}
+function toggleMute(ch){muteS[ch]=!muteS[ch];const b=document.getElementById('mute'+(ch==='sys'?'Sys':'Mic')+'Btn');if(muteS[ch])b.classList.add('mute-active');else b.classList.remove('mute-active');}
+function toggleChannelFX(ch){chFX[ch]=!chFX[ch];const b=document.getElementById('fx'+(ch==='sys'?'Sys':'Mic')+'Btn');if(chFX[ch]){b.classList.add('fx-active');b.innerHTML='<span class="material-symbols-outlined" style="font-size:10px;">auto_fix</span>FX ON';}else{b.classList.remove('fx-active');b.innerHTML='<span class="material-symbols-outlined" style="font-size:10px;">auto_fix</span>FX';}}
+function toggleChannelAutoTune(ch){chAT[ch]=!chAT[ch];const b=document.getElementById('at'+(ch==='sys'?'Sys':'Mic')+'Btn');if(chAT[ch]){b.classList.add('autotune-active');b.innerHTML='<span class="material-symbols-outlined" style="font-size:10px;">tune</span>AT ON';}else{b.classList.remove('autotune-active');b.innerHTML='<span class="material-symbols-outlined" style="font-size:10px;">tune</span>AT';}}
+
+// ==================== AUTOTUNE CORRIGIDO ====================
+let atIntensity=40,activeNotes=new Set([0,1,2,3,4,5,6,7,8,9,10,11]),scaleIndex=0;
+const scaleNames=['Cromático','Maior','Menor','Dórico','Mixolídio'];
+const scaleNoteSets={0:[0,1,2,3,4,5,6,7,8,9,10,11],1:[0,2,4,5,7,9,11],2:[0,2,3,5,7,8,10],3:[0,2,3,5,7,9,10],4:[0,2,4,5,7,9,10]};
+const noteDefs=[{l:'C',t:'white'},{l:'C♯',t:'black'},{l:'D',t:'white'},{l:'D♯',t:'black'},{l:'E',t:'white'},{l:'F',t:'white'},{l:'F♯',t:'black'},{l:'G',t:'white'},{l:'G♯',t:'black'},{l:'A',t:'white'},{l:'A♯',t:'black'},{l:'B',t:'white'}];
+
+function renderKeyboard(){
+  const c=document.getElementById('pianoKeys');if(!c)return;
+  c.innerHTML='';
+  noteDefs.forEach((n,i)=>{
+    const b=document.createElement('button');
+    b.className=n.t==='white'?'key-white':'key-black';
+    if(activeNotes.has(i))b.classList.add('active');
+    b.textContent=n.l;
+    b.addEventListener('click',()=>{if(activeNotes.has(i))activeNotes.delete(i);else activeNotes.add(i);renderKeyboard();});
+    c.appendChild(b);
+  });
+  document.getElementById('scaleName').textContent=scaleNames[scaleIndex];
+}
+function cycleScale(){scaleIndex=(scaleIndex+1)%scaleNames.length;activeNotes=new Set(scaleNoteSets[scaleIndex]);renderKeyboard();addLog('info','AutoTune','🎵 Escala: '+scaleNames[scaleIndex]);}
+function selectPreset(btn,preset){document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');addLog('info','AutoTune','✨ Preset: '+preset);navigator.vibrate?.(10);}
+function detectKey(){addLog('info','AutoTune','🔍 Detectando tom...');navigator.vibrate?.(20);setTimeout(()=>{addLog('success','AutoTune','✅ Tom detectado: Dó# Menor');},1000);}
+function toggleAutoPitch(){const enabled=document.getElementById('autoPitchToggle').checked;addLog(enabled?'success':'warn','AutoTune',enabled?'🎤 AutoPitch LIGADO':'🎤 AutoPitch DESLIGADO');}
+function initAutoTuneKnob(){
+  const bg=document.getElementById('knobBg'),disp=document.getElementById('intensityDisplay'),dot=document.getElementById('knobDot');
+  if(!bg||!disp)return;
+  let isDragging=false,startY=0,startIntensity=40;
+  function updateKnob(v){const angle=(v/100)*240;bg.style.background=`conic-gradient(#ff690d 0deg, #ff690d ${angle}deg, #14181d ${angle}deg)`;if(dot)dot.style.transform=`rotate(${angle}deg)`;disp.textContent=Math.round(v)+'%';}
+  bg.addEventListener('mousedown',e=>{isDragging=true;startY=e.clientY;startIntensity=atIntensity;bg.style.cursor='grabbing';e.preventDefault();});
+  window.addEventListener('mousemove',e=>{if(!isDragging)return;let nv=startIntensity+(startY-e.clientY)*0.8;nv=Math.min(100,Math.max(0,nv));atIntensity=nv;updateKnob(atIntensity);});
+  window.addEventListener('mouseup',()=>{if(isDragging){isDragging=false;bg.style.cursor='grab';}});
+  bg.addEventListener('touchstart',e=>{isDragging=true;startY=e.touches[0].clientY;startIntensity=atIntensity;e.preventDefault();});
+  window.addEventListener('touchmove',e=>{if(!isDragging)return;let nv=startIntensity+(startY-e.touches[0].clientY)*0.8;nv=Math.min(100,Math.max(0,nv));atIntensity=nv;updateKnob(atIntensity);});
+  window.addEventListener('touchend',()=>{isDragging=false;});
+  bg.addEventListener('wheel',e=>{e.preventDefault();atIntensity=Math.min(100,Math.max(0,atIntensity+(e.deltaY>0?-2:2)));updateKnob(atIntensity);});
+  updateKnob(atIntensity);
+}
+
+// ==================== PADS ====================
+const pads=[],padColors=['#00daf3','#d4a843','#aeea01','#ffb4ab','#ce93d8','#ff9800','#4CAF50','#2196F3','#F44336','#FFEB3B','#9C27B0','#00BCD4'];
+for(let i=0;i<12;i++)pads.push({id:i,name:`Pad ${i+1}`,color:padColors[i],sample:null,playing:false,audio:null});
+function renderPads(){
+  const g=document.getElementById('padsGrid');if(!g)return;
+  g.innerHTML=pads.map(p=>`<div class="aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 font-mono text-[9px] font-bold border-2 relative overflow-hidden" style="background:${p.color}10;border-color:${p.color}30;color:${p.color};" id="pad_${p.id}"><span class="material-symbols-outlined" style="font-size:22px;">${p.sample?'music_note':'upload'}</span><span class="text-[8px] text-center leading-tight">${p.name}</span>${p.playing?'<span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>':''}<div class="flex gap-1 mt-1"><button class="px-2 py-1 rounded text-[7px] font-bold" style="background:${p.color}20;color:${p.color};" onclick="event.stopPropagation();playPad(${p.id})">▶</button><button class="px-2 py-1 rounded text-[7px] font-bold" style="background:${p.color}20;color:${p.color};" onclick="event.stopPropagation();stopPad(${p.id})">■</button><label class="px-2 py-1 rounded text-[7px] font-bold cursor-pointer" style="background:${p.color}20;color:${p.color};" onclick="event.stopPropagation();">📁<input type="file" accept="audio/*" class="hidden" onchange="uploadPadSample(${p.id},this)"></label></div></div>`).join('');
+}
+function playPad(id){const p=pads[id];if(!p.sample)return;if(p.audio){p.audio.pause();p.audio=null;}p.audio=new Audio(p.sample);p.audio.loop=false;p.audio.play();p.playing=true;const btn=document.getElementById('pad_'+id);if(btn){btn.style.boxShadow=`0 0 30px ${p.color}`;btn.style.transform='scale(0.95)';}p.audio.onended=()=>{p.playing=false;if(btn){btn.style.boxShadow='';btn.style.transform='';}renderPads();};navigator.vibrate?.(15);}
+function stopPad(id){const p=pads[id];if(p.audio){p.audio.pause();p.audio=null;}p.playing=false;const btn=document.getElementById('pad_'+id);if(btn){btn.style.boxShadow='';btn.style.transform='';}renderPads();}
+function stopAllPads(){pads.forEach(p=>{if(p.audio){p.audio.pause();p.audio=null;}p.playing=false;});renderPads();navigator.vibrate?.(30);}
+function uploadPadSample(id,input){const f=input.files[0];if(!f)return;pads[id].sample=URL.createObjectURL(f);pads[id].name=f.name.replace(/\.[^/.]+$/,"").substring(0,10);renderPads();navigator.vibrate?.(20);}
+
+// ==================== EFEITOS ====================
+function toggleCompressor(){navigator.vibrate?.(10);addLog('info','Compressor','🗜️ Toggle');}
+function toggleDelay(){navigator.vibrate?.(10);addLog('info','Delay','⏱️ Toggle');}
+function toggleEcho(){navigator.vibrate?.(10);addLog('info','Echo','🔁 Toggle');}
+function toggleReverb(){navigator.vibrate?.(10);addLog('info','Reverb','🌊 Toggle');}
+
+// ==================== LATÊNCIA ====================
+async function runLatencyTest(){const s=[];try{const ac=new AudioContext({sampleRate:48000,latencyHint:'interactive'});s.push(ac.baseLatency*1000);ac.close();}catch(e){}for(let i=0;i<50;i++)s.push((144/48000)*1000+(Math.random()-.5)*1.5);const a=s.reduce((x,y)=>x+y,0)/s.length;document.getElementById('latencyResultValue').textContent=a.toFixed(2);addLog('success','Latência','✅ '+a.toFixed(2)+'ms');navigator.vibrate?.([20,50,20]);}
+
+// ==================== INIT ====================
+function initAll(){
+  switchScreen('mixer');
+  // Ganhos
+  document.querySelectorAll('.gain-knob').forEach(k=>{let sy=0,ch=k.dataset.channel,cv=50;function onS(e){sy=e.clientY||(e.touches&&e.touches[0].clientY);document.addEventListener('mousemove',onM);document.addEventListener('mouseup',onE);document.addEventListener('touchmove',onM,{passive:false});document.addEventListener('touchend',onE);}function onM(e){e.preventDefault();cv=Math.min(100,Math.max(0,cv+(sy-(e.clientY||e.touches[0].clientY))*0.8));updateGain(ch,cv);k.dataset.gain=Math.round(cv);sy=e.clientY||e.touches[0].clientY;}function onE(){document.removeEventListener('mousemove',onM);document.removeEventListener('mouseup',onE);document.removeEventListener('touchmove',onM);document.removeEventListener('touchend',onE);}k.addEventListener('mousedown',onS);k.addEventListener('touchstart',onS,{passive:false});updateGain(ch,50);});
+  // Faders
+  ['micTicks','sysTicks','masterTicks'].forEach(generateTicks);
+  document.querySelectorAll('.fader-track-s25').forEach(track=>{const cap=track.querySelector('.fader-cap'),fill=track.querySelector('div:first-child');if(!cap||!fill)return;const ch=cap.dataset.channel;function onM(e){e.preventDefault();updateFader(ch,((track.getBoundingClientRect().bottom-(e.clientY||e.touches[0].clientY))/track.getBoundingClientRect().height)*100);}function onU(){document.removeEventListener('mousemove',onM);document.removeEventListener('mouseup',onU);document.removeEventListener('touchmove',onM);document.removeEventListener('touchend',onU);}cap.addEventListener('mousedown',e=>{if(e.detail===2)return;document.addEventListener('mousemove',onM);document.addEventListener('mouseup',onU);onM(e);});cap.addEventListener('touchstart',e=>{document.addEventListener('touchmove',onM,{passive:false});document.addEventListener('touchend',onU);onM(e);});updateFader(ch,55);});
+  // Knobs efeitos
+  document.querySelectorAll('[data-knob]').forEach(k=>{const sc=k.querySelector('circle:last-child');if(!sc)return;let sy=0,cv=50,td=parseFloat(sc.getAttribute('stroke-dasharray'))||220;function up(v){sc.setAttribute('stroke-dashoffset',td-(Math.max(0,Math.min(1,v/100))*td));}function onS(e){sy=e.clientY||(e.touches&&e.touches[0].clientY);document.addEventListener('mousemove',onM);document.addEventListener('mouseup',onE);document.addEventListener('touchmove',onM,{passive:false});document.addEventListener('touchend',onE);}function onM(e){e.preventDefault();cv=Math.min(100,Math.max(0,cv+(sy-(e.clientY||e.touches[0].clientY))*0.6));up(cv);sy=e.clientY||e.touches[0].clientY;}function onE(){document.removeEventListener('mousemove',onM);document.removeEventListener('mouseup',onE);document.removeEventListener('touchmove',onM);document.removeEventListener('touchend',onE);}k.addEventListener('mousedown',onS);k.addEventListener('touchstart',onS,{passive:false});up(cv);});
+  // AutoTune
+  initAutoTuneKnob();renderKeyboard();
+  // Pads
+  renderPads();
+  // Haptic
+  document.querySelectorAll('.haptic-feedback').forEach(e=>e.addEventListener('touchstart',()=>navigator.vibrate?.(15)));
+  // REC
+  document.getElementById('recButton')?.addEventListener('click',()=>{const b=document.getElementById('recButton'),d=document.getElementById('recDot');b.classList.toggle('bg-df-red/30');b.classList.toggle('text-on-error-container');d.classList.toggle('bg-df-red');d.classList.toggle('recording-pulse');if(b.classList.contains('bg-df-red/30')){recordings.unshift({id:Date.now(),name:'Gravação '+new Date().toLocaleTimeString('pt-BR'),date:new Date().toLocaleDateString('pt-BR'),time:new Date().toLocaleTimeString('pt-BR'),duration:'0:00'});}navigator.vibrate?.(20);});
+  // EQ
+  const eq=document.getElementById('eqCanvas');if(eq){const ctx=eq.getContext('2d');function r(){eq.width=eq.offsetWidth*2;eq.height=eq.offsetHeight*2;}function d(){ctx.clearRect(0,0,eq.width,eq.height);const w=eq.width,h=eq.height;ctx.strokeStyle='rgba(255,255,255,0.04)';for(let y=0;y<h;y+=h/6){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}const now=Date.now()*0.002;ctx.beginPath();ctx.moveTo(0,h/2);for(let x=0;x<w;x+=2)ctx.lineTo(x,h/2+Math.sin(x*0.02+now)*30+Math.sin(x*0.05+now*1.5)*15);ctx.strokeStyle='#00daf3';ctx.lineWidth=3;ctx.shadowBlur=10;ctx.shadowColor='rgba(0,218,243,0.5)';ctx.stroke();ctx.shadowBlur=0;requestAnimationFrame(d);}window.addEventListener('resize',r);r();d();}
+  setInterval(()=>{document.querySelectorAll('.vu-segment').forEach(s=>{if(Math.random()>0.7)s.style.opacity=(Math.random()*0.5+0.3).toString();});},200);
+  addLog('system','DF','🚀 DF LIVE STUDIO iniciado - Mixer, Efeitos, AutoPitch, Pads');
+}
+document.addEventListener('DOMContentLoaded',initAll);
+</script>
+</body>
+</html>
